@@ -4,6 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f5f7" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0f16" />
+<link rel="manifest" href="manifest.json" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="到岸计算器" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
 <link rel="icon" href="data:," />
 <title>欧盟到岸成本计算器</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -496,6 +505,7 @@ footer a { color: var(--eu-blue);}
 <li>承运商执行口径（PID、拒收风险）：<a href="http://help.shipstation.com/hc/en-us/articles/25007865974299-Country-Specific-Cross-Border-Shipping-Requirements" target="_blank" rel="noopener">ShipStation 帮助中心 FAQ</a></li>
 <li>各国 VAT 标准税率：<a href="https://en.wikipedia.org/wiki/European_Union_value_added_tax" target="_blank" rel="noopener">Wikipedia: European Union value added tax</a>（与奥地利联邦商会 2026 年税率表交叉核对）</li>
 </ul>
+<p style="margin-top:14px;font-size:12px;color:var(--ink-3)">📱 可添加到手机主屏幕，像 App 一样使用——在浏览器菜单里选择“添加到主屏幕”，离线也能打开。</p>
 </footer>
 </main>
 
@@ -803,6 +813,18 @@ btn.textContent = "订阅提醒";
 
 calc();
 })();
+</script>
+<script>
+/* PWA：注册 Service Worker，支持添加到主屏幕与离线打开。注册失败静默忽略。 */
+try {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      try {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      } catch (e) {}
+    });
+  }
+} catch (e) {}
 </script>
 </body>
 </html>
