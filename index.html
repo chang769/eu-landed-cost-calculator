@@ -504,9 +504,8 @@ footer a { color: var(--eu-blue);}
 "use strict";
 
 /* ================= 站长配置（上线前填这里） =================
- * FORM_SUBMIT_EMAIL：订阅邮件的收件邮箱。
- *   填你自己的邮箱即可，订阅会通过 FormSubmit 转发到这个邮箱
- *   （首次使用时 FormSubmit 会先给该邮箱发一封激活确认信，点一下确认链接后订阅才会真正送达）。
+ * WEB3FORMS_KEY：Web3Forms 的 access key（在 web3forms.com 用收件邮箱注册后拿到）。
+ *   访客提交订阅后，Web3Forms 会把订阅内容发到注册时用的邮箱。
  *   留空时点订阅会显示“订阅通道即将开通”，不会真的提交。
  *
  * ANALYTICS_PROVIDER / ANALYTICS_ID：访问统计。
@@ -515,7 +514,7 @@ footer a { color: var(--eu-blue);}
  *   - "umami"：到 umami.is 注册（或用自建版），ANALYTICS_ID 填 Website ID
  *   - "ga4"：到 analytics.google.com 注册，ANALYTICS_ID 填衡量 ID（如 G-XXXXXXXXXX）
  */
-const FORM_SUBMIT_EMAIL = "hello.costclear@gmail.com";
+const WEB3FORMS_KEY = "159a816c-5a8d-4456-9735-0629865a9b59";
 const ANALYTICS_PROVIDER = "";
 const ANALYTICS_ID = "";
 
@@ -756,14 +755,14 @@ document.body.removeChild(ta);
 }
 });
 
-/* ---- 邮箱订阅（FormSubmit AJAX 接口） ---- */
+/* ---- 邮箱订阅（Web3Forms 接口） ---- */
 var subForm = $("subForm");
 if (subForm) {
 subForm.addEventListener("submit", function (ev) {
 ev.preventDefault();
 var msg = $("subMsg"), btn = $("subBtn");
 function show(text, cls) { msg.textContent = text; msg.className = "sub-msg " + cls;}
-if (!FORM_SUBMIT_EMAIL) {
+if (!WEB3FORMS_KEY) {
 show("订阅通道即将开通，敬请期待。", "info");
 return;
 }
@@ -775,18 +774,18 @@ return;
 }
 btn.disabled = true;
 btn.textContent = "提交中…";
-fetch("https://formsubmit.co/ajax/" + encodeURIComponent(FORM_SUBMIT_EMAIL), {
+fetch("https://api.web3forms.com/submit", {
 method: "POST",
 headers: { "Content-Type": "application/json", "Accept": "application/json"},
 body: JSON.stringify({
+access_key: WEB3FORMS_KEY,
 name: subName,
 email: subEmail,
-_subject: "【欧盟到岸成本计算器】新订阅",
-_template: "table"
+subject: "【欧盟到岸成本计算器】新订阅"
 })
 }).then(function (res) {
 return res.json().catch(function () { return {};}).then(function (data) {
-if (res.ok && String(data.success) === "true") {
+if (res.ok && data.success === true) {
 show("订阅成功！新规有变化会发邮件通知你。", "ok");
 subForm.reset();
 } else {
