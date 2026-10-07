@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>欧盟到岸成本计算器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Archivo:wght@600;800&display=swap" rel="stylesheet" />
+<style>
+:root {
+color-scheme: light dark;
+--bg: #f4f5f7;
+--surface: #ffffff;
+--surface-2: #eef1f5;
+--ink: #101828;
+--ink-2: #475467;
+--ink-3: #8492a6;
+--line: #d8dee8;
+--eu-blue: #003399;
+--eu-blue-soft: #e3eaf7;
+--amber: #b45309;
+--amber-soft: #fdf3e3;
+--red: #b42318;
+--red-soft: #fdecea;
+--green: #067647;
+--bar-1: #003399;
+--bar-2: #5b8def;
+--bar-3: #d97706;
+--bar-4: #f59e0b;
+--bar-5: #12b76a;
+--bar-6: #8492a6;
+--radius: 14px;
+--shadow: 0 1px 2px rgba(16, 24, 40,.06), 0 8px 24px -12px rgba(16, 24, 40,.18);
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--bg: #0b0f16;
+--surface: #131a26;
+--surface-2: #1a2334;
+--ink: #eef2f8;
+--ink-2: #a7b4c8;
+--ink-3: #71809a;
+--line: #263146;
+--eu-blue: #7ba7ff;
+--eu-blue-soft: #1c2c4e;
+--amber: #f5b04c;
+--amber-soft: #2e2410;
+--red: #ff8a7a;
+--red-soft: #331714;
+--green: #4ade9e;
+--bar-1: #7ba7ff;
+--bar-2: #5b8def;
+--bar-3: #f59e0b;
+--bar-4: #fbbf24;
+--bar-5: #34d399;
+--bar-6: #5b6b85;
+--shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+}
+* { box-sizing: border-box;}
+html { -webkit-text-size-adjust: 100%;}
+body {
+margin: 0;
+background: var(--bg);
+color: var(--ink);
+font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+font-size: 15px;
+line-height: 1.6;
+}
+.num { font-family: "Archivo", "Noto Sans SC", system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing:.01em;}
+main { max-width: 1120px; margin: 0 auto; padding: 20px 16px 56px;}
+
+/* ---------- header ---------- */
+header.top { padding: 10px 2px 4px;}
+.kicker { font-size: 12px; font-weight: 700; letter-spacing:.14em; color: var(--eu-blue); text-transform: uppercase;}
+h1 { font-size: clamp(26px, 5vw, 38px); line-height: 1.2; margin: 6px 0 8px; font-weight: 900;}
+.lede { color: var(--ink-2); max-width: 46em; margin: 0; font-size: 15px;}
+.lede b { color: var(--ink);}
+.asof { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); padding: 3px 10px; border-radius: 999px;}
+
+/* ---------- timeline ---------- */
+.timeline { margin: 22px 0 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 18px 8px;}
+.timeline h2 { font-size: 14px; margin: 0 0 4px; font-weight: 700;}
+.tl-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 14px; position: relative;}
+.tl-track::before { content: ""; position: absolute; top: 7px; left: 4%; right: 4%; height: 2px; background: var(--line);}
+.tl-item { position: relative; padding: 0 10px 14px 0;}
+.tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink-3); position: relative; z-index: 1; margin-bottom: 8px;}
+.tl-item.done.tl-dot { border-color: var(--eu-blue); background: var(--eu-blue);}
+.tl-item.soon.tl-dot { border-color: var(--amber); background: var(--amber);}
+.tl-date { font-size: 12px; font-weight: 700; color: var(--ink-2);}
+.tl-item.done.tl-date { color: var(--eu-blue);}
+.tl-item.soon.tl-date { color: var(--amber);}
+.tl-title { font-weight: 700; font-size: 14px; margin: 2px 0;}
+.tl-desc { font-size: 12.5px; color: var(--ink-2); margin: 0;}
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; vertical-align: 2px; margin-left: 6px;}
+.tag.live { background: var(--eu-blue-soft); color: var(--eu-blue);}
+.tag.soon { background: var(--amber-soft); color: var(--amber);}
+.tag.future { background: var(--surface-2); color: var(--ink-2);}
+
+/* ---------- layout ---------- */
+.grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; margin-top: 20px; align-items: start;}
+@media (max-width: 860px) {.grid { grid-template-columns: 1fr;}}
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px;}
+.card h2 { font-size: 16px; margin: 0 0 4px; font-weight: 900;}
+.card.sub { color: var(--ink-2); font-size: 13px; margin: 0 0 16px;}
+.sticky { position: sticky; top: 14px;}
+@media (max-width: 860px) {.sticky { position: static;}}
+
+/* ---------- form ---------- */
+.field { margin-bottom: 16px;}
+.field label { display: block; font-weight: 700; font-size: 13.5px; margin-bottom: 2px;}
+.field.hint { font-size: 12px; color: var(--ink-3); margin: 0 0 6px;}
+.field.en { color: var(--ink-3); font-weight: 500; font-size: 12px;}
+.input-wrap { display: flex; align-items: stretch; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface);}
+.input-wrap:focus-within { border-color: var(--eu-blue);}
+.input-wrap input,.input-wrap select { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 16px; padding: 10px 12px; font-family: inherit;}
+.input-wrap select { appearance: none; cursor: pointer;}
+.unit { display: flex; align-items: center; padding: 0 12px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 700; border-left: 1px solid var(--line); white-space: nowrap;}
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;}
+.field { min-width: 0;}
+@media (max-width: 480px) {.row2 { grid-template-columns: 1fr;}}
+
+.seg { display: flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px;}
+.seg button { flex: 1; border: 0; background: transparent; color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 700; padding: 8px 4px; border-radius: 7px; cursor: pointer;}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(16,24,40,.18);}
+.seg button small { display: block; font-weight: 500; font-size: 11px; color: var(--ink-3);}
+.seg button[aria-pressed="true"] small { color: var(--ink-2);}
+
+details.adv { border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 12px;}
+details.adv summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--eu-blue); margin-bottom: 12px;}
+
+/* ---------- results ---------- */
+.total-label { font-size: 12px; font-weight: 700; letter-spacing:.1em; color: var(--ink-2); text-transform: uppercase;}
+.total-big { font-size: clamp(38px, 7vw, 52px); font-weight: 800; line-height: 1.05; margin: 2px 0 0;}
+.total-big small { font-size: 20px; font-weight: 600; color: var(--ink-2);}
+.total-cny { font-size: 16px; color: var(--ink-2); margin-top: 2px;}
+.total-cny b { color: var(--ink);}
+.per-item { display: inline-block; margin-top: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px;}
+.per-item b { color: var(--eu-blue);}
+
+.bar { display: flex; height: 18px; border-radius: 6px; overflow: hidden; margin: 18px 0 8px; border: 1px solid var(--line);}
+.bar div { min-width: 0; transition: width.25s ease;}
+.legend { list-style: none; margin: 0 0 6px; padding: 0; font-size: 12.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 4px 14px;}
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px;}
+
+table.breakdown { width: 100%; border-collapse: collapse; margin-top: 8px;}
+table.breakdown th, table.breakdown td { padding: 9px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top;}
+table.breakdown td.amt, table.breakdown th.amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;}
+table.breakdown th { font-size: 12px; color: var(--ink-2); font-weight: 700;}
+table.breakdown.rowname { font-weight: 600; font-size: 14px;}
+table.breakdown.rowsub { font-size: 12px; color: var(--ink-3); font-weight: 400;}
+table.breakdown tr.total-row td { border-bottom: 0; border-top: 2px solid var(--ink); font-weight: 800; font-size: 15px;}
+.zero { color: var(--ink-3);}
+
+.callout { border-radius: 10px; padding: 12px 14px; font-size: 13.5px; margin-top: 14px;}
+.callout.red { background: var(--red-soft); color: var(--red);}
+.callout.amber { background: var(--amber-soft); color: var(--amber);}
+.callout b { font-weight: 800;}
+@media (prefers-color-scheme: dark) {.callout.red,.callout.amber { color: var(--ink);}.callout.red b,.callout.amber b { color: inherit;}}
+
+/* ---------- comparison ---------- */
+.compare { margin-top: 20px;}
+table.cmp { width: 100%; border-collapse: collapse;}
+table.cmp th, table.cmp td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums;}
+table.cmp th:first-child, table.cmp td:first-child { text-align: left;}
+table.cmp thead th { font-size: 12.5px; color: var(--ink-2); border-bottom: 2px solid var(--line);}
+table.cmp td.era { font-weight: 600;}
+table.cmp td.era small { display: block; color: var(--ink-3); font-weight: 400; font-size: 12px;}
+table.cmp tr.now td { background: var(--eu-blue-soft); font-weight: 700;}
+table.cmp.delta { color: var(--red); font-weight: 700;}
+@media (max-width: 560px) {
+table.cmp th:nth-child(3), table.cmp td:nth-child(3) { display: none;}
+}
+
+/* ---------- below sections ---------- */
+.below { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px;}
+@media (max-width: 860px) {.below { grid-template-columns: 1fr;}}
+.glossary { list-style: none; margin: 0; padding: 0;}
+.glossary li { padding: 10px 0; border-bottom: 1px solid var(--line);}
+.glossary li:last-child { border-bottom: 0;}
+.glossary.term { font-weight: 800; font-size: 14px;}
+.glossary.term.en { color: var(--eu-blue); font-weight: 700;}
+.glossary p { margin: 2px 0 0; font-size: 13px; color: var(--ink-2);}
+.steps { counter-reset: st; list-style: none; margin: 0; padding: 0;}
+.steps li { padding: 10px 0 10px 40px; position: relative; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2);}
+.steps li:last-child { border-bottom: 0;}
+.steps li::before { counter-increment: st; content: counter(st); position: absolute; left: 0; top: 10px; width: 26px; height: 26px; border-radius: 50%; background: var(--eu-blue); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center;}
+.steps b { color: var(--ink);}
+
+footer { margin-top: 28px; font-size: 12.5px; color: var(--ink-3);}
+footer h3 { font-size: 13px; color: var(--ink-2); margin: 0 0 6px;}
+footer ul { margin: 0; padding-left: 18px;}
+footer li { margin: 3px 0; overflow-wrap: anywhere;}
+footer a { color: var(--eu-blue);}
+.disclaimer { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 14px 16px; margin-top: 16px; color: var(--ink-2);}
+
+.actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;}
+.btn { font: inherit; font-size: 13.5px; font-weight: 700; border-radius: 10px; padding: 9px 16px; cursor: pointer; border: 1.5px solid var(--eu-blue); background: var(--eu-blue); color: #fff;}
+.btn.ghost { background: transparent; color: var(--eu-blue);}
+.btn:active { transform: translateY(1px);}
+.copied { font-size: 13px; color: var(--green); font-weight: 700; align-self: center;}
+
+/* ---------- subscribe ---------- */
+.subscribe { border-top: 1px dashed var(--line); margin-top: 18px; padding-top: 16px;}
+.subscribe h3 { font-size: 15px; margin: 0 0 4px; font-weight: 900;}
+.subscribe p { font-size: 13px; color: var(--ink-2); margin: 0 0 12px;}
+.subscribe.field { margin-bottom: 12px;}
+.subscribe.btn { width: 100%; padding: 11px 16px;}
+.subscribe.btn:disabled { opacity:.6; cursor: wait;}
+.sub-msg { font-size: 13.5px; font-weight: 700; margin: 10px 0 0; display: none;}
+.sub-msg.ok { color: var(--green); display: block;}
+.sub-msg.info { color: var(--amber); display: block;}
+
+@media (prefers-reduced-motion: reduce) {.bar div { transition: none;}}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+<div class="kicker">EU Landed Cost Calculator</div>
+<h1>欧盟到岸成本计算器</h1>
+<p class="lede">给从中国发货到欧盟的跨境小卖家用：填一个包裹的信息，立刻算出<b>这一票货的到岸成本</b>（货值 + 运费 + 关税 + 处理费 + 增值税），并对比欧盟新规前后的差价——知道每个包裹到底多花了多少钱，才知道售价要不要涨。</p>
+<span class="asof">规则数据截至 2026 年 10 月 7 日 · 金额单位为欧元（€），人民币按下方汇率换算</span>
+</header>
+
+<section class="timeline" aria-label="欧盟小包新规时间线">
+<h2>欧盟小包新规时间线 <span style="color:var(--ink-3);font-weight:500">（这三步决定了你的包裹成本）</span></h2>
+<div class="tl-track">
+<div class="tl-item done">
+<div class="tl-dot"></div>
+<div class="tl-date">2026 年 7 月 1 日</div>
+<p class="tl-title">€3 定额关税<span class="tag live">已生效</span></p>
+<p class="tl-desc">€150 以下免税额度（de minimis）取消。≤€150 的 B2C 小包按 <b>€3/品类</b>（不同 HS 税目）收定额关税（Council Regulation (EU) 2026/382），由卖家/进口商缴，不向买家当面收。</p>
+</div>
+<div class="tl-item soon">
+<div class="tl-dot"></div>
+<div class="tl-date">2026 年 11 月 1 日</div>
+<p class="tl-title">+ €2 处理费<span class="tag soon">草案已定 €2</span></p>
+<p class="tl-desc">Union handling fee（欧盟统一处理费）：欧盟委员会 2026 年 9 月 21 日公布授权法案草案，金额定为 <b>€2</b>、2026 年 11 月 1 日起征，与 €3 关税叠加。计征单位（按件还是按包裹）公开口径尚不统一，以正式法案为准——本页两种都可切换测算，金额也可改。</p>
+</div>
+<div class="tl-item">
+<div class="tl-dot"></div>
+<div class="tl-date">2028 年 7 月 1 日</div>
+<p class="tl-title">按 HS 税率全面计税<span class="tag future">过渡期结束</span></p>
+<p class="tl-desc">€3 定额只是过渡。EU Customs Data Hub（欧盟海关数据中心）上线后，所有进口按商品的 HS 编码适用正常关税税率。</p>
+</div>
+</div>
+</section>
+
+<div class="grid">
+<!-- ============ INPUTS ============ -->
+<section class="card" aria-label="包裹信息输入">
+<h2>① 填包裹信息</h2>
+<p class="sub">按一个包裹（一票货）来填。改任何一个数字，右边结果立刻重算。</p>
+
+<div class="field">
+<label for="dest">目的地国家 <span class="en">Destination</span></label>
+<p class="hint">决定增值税（VAT, Value Added Tax）税率。默认德国——中国小包最常见的目的地。</p>
+<div class="input-wrap">
+<select id="dest"></select>
+<span class="unit" id="vatRateLabel">VAT 19%</span>
+</div>
+</div>
+
+<div class="row2">
+<div class="field">
+<label for="value">商品申报价值 <span class="en">Declared value</span></label>
+<p class="hint">整个包裹的货值（海关据此计税），不是售价。</p>
+<div class="input-wrap">
+<input id="value" type="number" inputmode="decimal" min="0" step="0.5" value="12" />
+<span class="unit">€</span>
+</div>
+</div>
+<div class="field">
+<label for="freight">国际运费 <span class="en">Shipping</span></label>
+<p class="hint">这一票的国际段运费。包邮填 0。</p>
+<div class="input-wrap">
+<input id="freight" type="number" inputmode="decimal" min="0" step="0.5" value="4" />
+<span class="unit">€</span>
+</div>
+</div>
+</div>
+
+<div class="row2">
+<div class="field">
+<label for="items">包裹内件数 <span class="en">Items</span></label>
+<p class="hint">用来算每件平均成本。</p>
+<div class="input-wrap">
+<input id="items" type="number" inputmode="numeric" min="1" step="1" value="1" />
+<span class="unit">件</span>
+</div>
+</div>
+<div class="field">
+<label for="cats">不同品类数 <span class="en">HS lines</span></label>
+<p class="hint">€3 关税按不同 HS 税目（品类）计征：同品类 5 件只收一次 €3，3 个品类收 €9。</p>
+<div class="input-wrap">
+<input id="cats" type="number" inputmode="numeric" min="1" step="1" value="1" />
+<span class="unit">类</span>
+</div>
+</div>
+</div>
+
+<div class="field">
+<label for="price">你的售价（选填）<span class="en">Selling price</span></label>
+<p class="hint">填了才能看税费占售价的比例。</p>
+<div class="input-wrap">
+<input id="price" type="number" inputmode="decimal" min="0" step="0.5" placeholder="如 19.99" />
+<span class="unit">€</span>
+</div>
+</div>
+
+<div class="field">
+<label>按哪个时间点算 <span class="en">Scenario</span></label>
+<p class="hint">11 月 1 日后每个包裹再多一笔 €2 处理费（按件还是按包裹计征待正式法案），提前算好才来得及调价。</p>
+<div class="seg" role="group" aria-label="时间情景">
+<button type="button" data-era="now" aria-pressed="true">现行<small>2026.7 起 · €3/品类</small></button>
+<button type="button" data-era="nov" aria-pressed="false">11 月后<small>€3 + €2 处理费</small></button>
+<button type="button" data-era="old" aria-pressed="false">旧规<small>2026.7 前 · 免税额</small></button>
+</div>
+</div>
+
+<details class="adv">
+<summary>高级设置（汇率、处理费金额、大货关税率）</summary>
+<div class="row2">
+<div class="field">
+<label for="fx">汇率 1 € =? 元 <span class="en">EUR→CNY</span></label>
+<p class="hint">按你出货当天的汇率改，这里只做换算参考。</p>
+<div class="input-wrap">
+<input id="fx" type="number" inputmode="decimal" min="0" step="0.01" value="7.8" />
+<span class="unit">¥</span>
+</div>
+</div>
+<div class="field">
+<label for="fee">处理费金额 <span class="en">Handling fee</span></label>
+<p class="hint">草案金额 €2。正式法案若改金额，在这里调。</p>
+<div class="input-wrap">
+<input id="fee" type="number" inputmode="decimal" min="0" step="0.1" value="2" />
+<span class="unit">€</span>
+</div>
+</div>
+<div class="field">
+<label for="feeBasis">处理费计征方式 <span class="en">Fee basis</span></label>
+<p class="hint">草案公开口径不一：有报道按件、也有按包裹。本页默认按件，可切换对比。</p>
+<div class="input-wrap">
+<select id="feeBasis">
+<option value="item" selected>按每件商品计</option>
+<option value="parcel">按每包裹计（只收一次）</option>
+</select>
+<span class="unit">方式</span>
+</div>
+</div>
+</div>
+<div class="row2">
+<div class="field">
+<label for="otherFees">其他费用（每票）<span class="en">Other fees</span></label>
+<p class="hint">清关代理费、承运商代垫/报关费、保险等杂费，没有就填 0。</p>
+<div class="input-wrap">
+<input id="otherFees" type="number" inputmode="decimal" min="0" step="0.5" value="0" />
+<span class="unit">€</span>
+</div>
+</div>
+<div class="field">
+<label for="dutyRate">大货关税率（货值 &gt; €150 时用）<span class="en">Tariff rate</span></label>
+<p class="hint">超过 €150 不再走 €3 定额，按 HS 编码（Harmonized System，商品编码）查到的税率填这里估算。</p>
+<div class="input-wrap">
+<input id="dutyRate" type="number" inputmode="decimal" min="0" step="0.5" value="6" />
+<span class="unit">%</span>
+</div>
+</div>
+</div>
+</details>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="card sticky" aria-label="测算结果">
+<div class="total-label">一票货的预计到岸成本 · Estimated Landed Cost</div>
+<div class="total-big num"><span id="totalEur">€0.00</span></div>
+<div class="total-cny">约合人民币 <b class="num" id="totalCny">¥0</b><span id="eraNote">（按现行规则：€3/件关税已含）</span></div>
+<span class="per-item">每件到岸成本 <b class="num" id="perItem">€0.00</b></span>
+<p class="hint" style="margin:8px 0 0">口径：商品按“申报价值”计（即一票货的货值）。这是已计项目的预计小计：清关代理费、承运商代垫费、保险等杂费未含，有的话在高级设置“其他费用”里加上。若你用 DDP（含税价）销售，这个数就是定价时至少要覆盖的成本；售价栏只用来算税费占比。</p>
+
+<div class="bar" id="bar" aria-hidden="true">
+<div id="segGoods" style="background:var(--bar-1)"></div>
+<div id="segFreight" style="background:var(--bar-2)"></div>
+<div id="segDuty" style="background:var(--bar-3)"></div>
+<div id="segFee" style="background:var(--bar-4)"></div>
+<div id="segVat" style="background:var(--bar-5)"></div>
+<div id="segOther" style="background:var(--bar-6)"></div>
+</div>
+<ul class="legend">
+<li><i style="background:var(--bar-1)"></i>商品</li>
+<li><i style="background:var(--bar-2)"></i>运费</li>
+<li><i style="background:var(--bar-3)"></i>关税</li>
+<li><i style="background:var(--bar-4)"></i>处理费</li>
+<li><i style="background:var(--bar-5)"></i>增值税 VAT</li>
+<li><i style="background:var(--bar-6)"></i>其他费用</li>
+</ul>
+
+<table class="breakdown">
+<thead><tr><th>成本项</th><th class="amt">金额 (€)</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+
+<div id="callouts"></div>
+
+<div class="actions">
+<button class="btn" id="copyBtn" type="button">复制测算结果</button>
+<button class="btn ghost" id="resetBtn" type="button">恢复示例值</button>
+<span class="copied" id="copiedMsg" hidden>已复制 ✓</span>
+</div>
+
+<div class="subscribe">
+<h3>新规有变动，第一时间告诉我</h3>
+<p>€2 处理费正式法案落地、税率调整或计算器上新功能时，发一封邮件提醒你。只发规则变动提醒，不发营销邮件。</p>
+<form id="subForm">
+<div class="field">
+<label for="subName">姓名 <span class="en">Name</span></label>
+<div class="input-wrap"><input id="subName" type="text" autocomplete="name" placeholder="怎么称呼你" /></div>
+</div>
+<div class="field">
+<label for="subEmail">邮箱 <span class="en">Email</span></label>
+<div class="input-wrap"><input id="subEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" /></div>
+</div>
+<button class="btn" id="subBtn" type="submit">订阅提醒</button>
+<p class="sub-msg" id="subMsg" role="status"></p>
+</form>
+</div>
+</section>
+</div>
+
+<!-- ============ COMPARISON ============ -->
+<section class="card compare" aria-label="新规前后对比">
+<h2>② 新规让每个包裹贵了多少</h2>
+<p class="sub">同一包裹在三个时间点的到岸成本对比。“多花的钱”就是新规直接加到你头上的成本——定价时要么转嫁给买家，要么从利润里扣。</p>
+<table class="cmp">
+<thead>
+<tr><th>时间点</th><th>到岸成本 (€)</th><th>每件 (€)</th><th>比旧规多花 (€)</th></tr>
+</thead>
+<tbody id="cmpRows"></tbody>
+</table>
+<div class="callout amber" id="cmpNote"></div>
+</section>
+
+<div class="below">
+<section class="card">
+<h2>这笔账是怎么算的</h2>
+<p class="sub">简化后的海关计税顺序（估算口径，最终以目的地海关核定为准）：</p>
+<ol class="steps">
+<li><b>先定关税。</b>货值 ≤ €150 且选“现行/11月后”：关税 = €3 × 品类数（包裹内不同 HS 税目的数量，同品类多件只计一次，这是承运商目前的执行口径）；货值 &gt; €150：关税 = 货值 × 大货关税率。旧规下 ≤€150 关税为 0。</li>
+<li><b>再加处理费。</b>仅“11 月后”情景：€2（金额可改；按件还是按包裹计征可在高级设置切换，正式法案公布后以其为准）。€3 关税退货也不退，算价时别指望退回来。</li>
+<li><b>最后算增值税 VAT。</b>计税基础 = 商品申报价值 + 国际运费 + 关税，再乘目的地国家税率（本页用各国标准税率，食品、书籍等低税率商品实际会更低）。2021 年起 VAT 已无 €22 免征额，第一欧分就计税；用 IOSS（Import One-Stop Shop，进口一站式申报）在结账时收 VAT，买家收货时就不用再补缴、也不会被收派送手续费。</li>
+<li><b>DDP 还是买家补缴，你选。</b>DDP（Delivered Duty Paid，完税后交货）= 买家下单一次付清、收货零意外，拒收率低；不预缴则买家要在收货时补 VAT+关税，还常被快递另收一笔代缴手续费，是差评和拒收的重灾区。</li>
+</ol>
+</section>
+
+<section class="card">
+<h2>术语速查（附英文全称）</h2>
+<p class="sub">跟货代、平台客服沟通时直接用英文词，对方秒懂。</p>
+<ul class="glossary">
+<li>
+<span class="term">到岸成本 <span class="en">Landed Cost</span></span>
+<p>买家收到货为止的全部成本：商品 + 运费 + 关税 + 各项费用 + 增值税。本页算的就是它。</p>
+</li>
+<li>
+<span class="term">低额免税 <span class="en">De Minimis</span></span>
+<p>拉丁语“小到可以不管”。欧盟原为 €150：低于此货值免关税。2026 年 7 月 1 日起取消，就是这轮涨价的源头。</p>
+</li>
+<li>
+<span class="term">商品编码 <span class="en">HS Code (Harmonized System Code)</span></span>
+<p>全球统一的商品分类编号（如耳机 8518）。2028 年后关税全看它；现行 €3 定额关税也按包裹内的税目数计征，品类申报错了会多缴或被扣货。</p>
+</li>
+<li>
+<span class="term">进口一站式申报 <span class="en">IOSS (Import One-Stop Shop)</span></span>
+<p>卖家在结账时就收买家的 VAT、按月统一申报缴欧盟。≤€150 的小包用它最顺，买家收货不再被追缴。</p>
+</li>
+<li>
+<span class="term">完税交货 <span class="en">DDP (Delivered Duty Paid)</span></span>
+<p>卖家负责把税费全缴清再交货。与之相对的是买家到付补税——便宜但拒收、差评风险高。</p>
+</li>
+</ul>
+</section>
+</div>
+
+<footer>
+<div class="disclaimer">
+<b>使用须知：</b>本工具为下单前估算，不构成税务或法律建议。€3 定额关税依据 Council Regulation (EU) 2026/382 自 2026 年 7 月 1 日执行；€2 处理费为欧盟委员会 2026 年 9 月 21 日公布的授权法案草案金额，2026 年 11 月 1 日实施，最终金额与计征单位（按件或按包裹）以正式法案为准（本页均可手动调整）。各国 VAT 为 2026 年标准税率，特定品类（食品、书籍、儿童用品等）可能适用低税率。特殊地区（如加那利群岛、马德拉）税制不同，不在本工具范围内。数据核对于 2026 年 10 月 7 日。
+</div>
+<h3 style="margin-top:18px">数据来源</h3>
+<ul>
+<li>欧盟海关改革与 €3 定额关税、€2 处理费时间线：<a href="https://www.lexblog.com/2026/09/15/on-the-road-toward-fewer-parcels-and-more-accountability-how-the-eu-and-uk-are-reshaping-e-commerce-imports/" target="_blank" rel="noopener">Lexology 律所简报（2026-09-15）</a></li>
+<li>€2 处理费草案细节：<a href="https://agenceurope.eu/en/bulletin/article/13943/10/tax-on-small-parcels-from-third-countries-european-commission-completes-eu-arrangements-with-customs-handling-fee-set-at-eur2" target="_blank" rel="noopener">Agence Europe（2026-09-22）</a>；<a href="https://www.vatcalc.com/eu/eu-mulls-customs-admin-tax-on-non-eu-sellers/" target="_blank" rel="noopener">VATCalc 新闻</a></li>
+<li>€3 按 HS 税目（品类）计征与卖家承担说明：</li><a href="http://www.amazonsellers.attorney/blog/eu-customs-duty-july-1-2026-what-amazon-fba-sellers-must-know" target="_blank" rel="noopener">Amazon Sellers Attorney 解读（2026-06-27）</a></li>
+<li>承运商执行口径（PID、拒收风险）：<a href="http://help.shipstation.com/hc/en-us/articles/25007865974299-Country-Specific-Cross-Border-Shipping-Requirements" target="_blank" rel="noopener">ShipStation 帮助中心 FAQ</a></li>
+<li>各国 VAT 标准税率：<a href="https://en.wikipedia.org/wiki/European_Union_value_added_tax" target="_blank" rel="noopener">Wikipedia: European Union value added tax</a>（与奥地利联邦商会 2026 年税率表交叉核对）</li>
+</ul>
+</footer>
+</main>
+
+<script>
+(function () {
+"use strict";
+
+/* ================= 站长配置（上线前填这里） =================
+ * FORM_SUBMIT_EMAIL：订阅邮件的收件邮箱。
+ *   填你自己的邮箱即可，订阅会通过 FormSubmit 转发到这个邮箱
+ *   （首次使用时 FormSubmit 会先给该邮箱发一封激活确认信，点一下确认链接后订阅才会真正送达）。
+ *   留空时点订阅会显示“订阅通道即将开通”，不会真的提交。
+ *
+ * ANALYTICS_PROVIDER / ANALYTICS_ID：访问统计。
+ *   先去对应官网注册站点、拿到 ID 后填回来；任一留空就不加载任何统计脚本。
+ *   - "plausible"：到 plausible.io 注册，ANALYTICS_ID 填站点域名（如 example.com）
+ *   - "umami"：到 umami.is 注册（或用自建版），ANALYTICS_ID 填 Website ID
+ *   - "ga4"：到 analytics.google.com 注册，ANALYTICS_ID 填衡量 ID（如 G-XXXXXXXXXX）
+ */
+const FORM_SUBMIT_EMAIL = "hello.costclear@gmail.com";
+const ANALYTICS_PROVIDER = "";
+const ANALYTICS_ID = "";
+
+/* 按上面的配置按需加载统计脚本；未配置时什么都不加载 */
+(function loadAnalytics() {
+if (!ANALYTICS_PROVIDER || !ANALYTICS_ID) return;
+var s;
+if (ANALYTICS_PROVIDER === "plausible") {
+s = document.createElement("script");
+s.defer = true;
+s.setAttribute("data-domain", ANALYTICS_ID);
+s.src = "https://plausible.io/js/script.js";
+document.head.appendChild(s);
+} else if (ANALYTICS_PROVIDER === "umami") {
+s = document.createElement("script");
+s.defer = true;
+s.src = "https://cloud.umami.is/script.js";
+s.setAttribute("data-website-id", ANALYTICS_ID);
+document.head.appendChild(s);
+} else if (ANALYTICS_PROVIDER === "ga4") {
+s = document.createElement("script");
+s.async = true;
+s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(ANALYTICS_ID);
+document.head.appendChild(s);
+window.dataLayer = window.dataLayer || [];
+window.gtag = function () { window.dataLayer.push(arguments);};
+window.gtag("js", new Date());
+window.gtag("config", ANALYTICS_ID);
+}
+})();
+
+var VAT_RATES = [
+["德国 Germany", 19], ["法国 France", 20], ["意大利 Italy", 22],
+["西班牙 Spain", 21], ["荷兰 Netherlands", 21], ["波兰 Poland", 23],
+["比利时 Belgium", 21], ["奥地利 Austria", 20], ["瑞典 Sweden", 25],
+["丹麦 Denmark", 25], ["芬兰 Finland", 25.5], ["爱尔兰 Ireland", 23],
+["葡萄牙 Portugal", 23], ["捷克 Czechia", 21], ["希腊 Greece", 24],
+["匈牙利 Hungary", 27], ["罗马尼亚 Romania", 21], ["保加利亚 Bulgaria", 20],
+["克罗地亚 Croatia", 25], ["斯洛伐克 Slovakia", 23], ["斯洛文尼亚 Slovenia", 22],
+["立陶宛 Lithuania", 21], ["拉脱维亚 Latvia", 21], ["爱沙尼亚 Estonia", 24],
+["卢森堡 Luxembourg", 17], ["马耳他 Malta", 18], ["塞浦路斯 Cyprus", 19]
+];
+
+var $ = function (id) { return document.getElementById(id);};
+var destSel = $("dest");
+VAT_RATES.forEach(function (c, i) {
+var o = document.createElement("option");
+o.value = i; o.textContent = c[0] + " · " + c[1] + "%";
+destSel.appendChild(o);
+});
+
+var era = "now";
+var segBtns = document.querySelectorAll(".seg button");
+segBtns.forEach(function (b) {
+b.addEventListener("click", function () {
+era = b.getAttribute("data-era");
+segBtns.forEach(function (x) { x.setAttribute("aria-pressed", x === b? "true": "false");});
+calc();
+});
+});
+
+function num(id, fallback) {
+var v = parseFloat($(id).value);
+return isNaN(v) || v < 0? fallback: v;
+}
+function fmt(n) {
+return "€" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function fmtCny(n) {
+return "¥" + Math.round(n).toLocaleString("zh-CN");
+}
+
+function compute(eraKey, p) {
+var duty = 0, fee = 0;
+if (p.value > 150) duty = p.value * p.dutyRate / 100;
+else if (eraKey!== "old") duty = 3 * p.cats;
+if (eraKey === "nov" && p.value <= 150) fee = p.feeBasis === "parcel" ? p.feePer : p.feePer * p.items;
+var vatBase = p.value + p.freight + duty;
+var vat = vatBase * p.vatRate / 100;
+var total = p.value + p.freight + duty + fee + vat + p.other;
+return { duty: duty, fee: fee, vat: vat, vatBase: vatBase, other: p.other, total: total, perItem: p.items > 0? total / p.items: total};
+}
+
+function calc() {
+var country = VAT_RATES[parseInt(destSel.value, 10) || 0];
+var p = {
+value: num("value", 0),
+freight: num("freight", 0),
+items: Math.max(1, Math.round(num("items", 1))),
+cats: 1,
+price: num("price", 0),
+fx: num("fx", 7.8) || 7.8,
+feePer: num("fee", 2),
+feeBasis: $("feeBasis").value,
+other: num("otherFees", 0),
+dutyRate: num("dutyRate", 6),
+vatRate: country[1]
+};
+p.cats = Math.min(p.items, Math.max(1, Math.round(num("cats", 1))));
+$("vatRateLabel").textContent = "VAT " + country[1] + "%";
+
+var r = compute(era, p);
+
+// ---- headline ----
+$("totalEur").textContent = fmt(r.total);
+$("totalCny").textContent = fmtCny(r.total * p.fx);
+$("perItem").textContent = fmt(r.perItem);
+var eraNotes = {
+now: "（按现行规则：€3/品类关税已含，处理费未含）",
+nov: "（按 2026 年 11 月后规则：€3 关税 + 处理费都已含）",
+old: "（按旧规：€150 以下免关税，仅供对比）"
+};
+$("eraNote").textContent = eraNotes[era];
+
+// ---- stacked bar ----
+var parts = [
+["segGoods", p.value], ["segFreight", p.freight],
+["segDuty", r.duty], ["segFee", r.fee], ["segVat", r.vat], ["segOther", r.other]
+];
+parts.forEach(function (s) {
+$(s[0]).style.width = r.total > 0? (s[1] / r.total * 100) + "%": "0%";
+});
+
+// ---- breakdown rows ----
+function row(name, sub, amt, muted) {
+return "<tr><td><span class='rowname'>" + name + "</span>" +
+(sub? "<br><span class='rowsub'>" + sub + "</span>": "") +
+"</td><td class='amt num" + (muted? " zero": "") + "'>" + fmt(amt) + "</td></tr>";
+}
+var dutySub, feeSub;
+if (era === "old") {
+dutySub = p.value <= 150? "旧规：€150 以下免关税": "旧规：按 HS 税率 " + p.dutyRate + "%";
+if (p.value > 150) { /* duty computed below via override */}
+}
+if (p.value > 150 && era!== "old") dutySub = "货值超 €150，按大货关税率 " + p.dutyRate + "% 估算";
+else if (era!== "old") dutySub = "€3 × " + p.cats + " 个品类（按 HS 税目计征，过渡期至 2028 年 7 月）";
+else dutySub = p.value <= 150? "旧规：€150 以下免关税": "旧规：按 HS 税率 " + p.dutyRate + "%";
+feeSub = era === "nov"
+? (p.value <= 150 ? "€" + p.feePer.toFixed(2) + (p.feeBasis === "parcel" ? " / 包裹（只收一次）" : " × " + p.items + " 件") + "（2026 年 11 月起，草案金额）" : "草案仅针对 ≤€150 小包")
+: "2026 年 11 月 1 日起加收，现行未含";
+
+var html = "";
+html += row("商品申报价值", "海关计税货值", p.value);
+html += row("国际运费", "计入增值税计税基础", p.freight);
+html += row("关税 Duty", dutySub, r.duty, r.duty === 0);
+html += row("海关处理费 Handling Fee", feeSub, r.fee, r.fee === 0);
+html += row("增值税 VAT", country[0].split(" ")[0] + "标准税率 " + p.vatRate + "% ×（货值+运费+关税）", r.vat);
+html += row("其他费用", "清关代理、代垫、保险等（高级设置填写）", r.other, r.other === 0);
+html += "<tr class='total-row'><td>到岸成本合计</td><td class='amt num'>" + fmt(r.total) + "</td></tr>";
+$("rows").innerHTML = html;
+
+// ---- callouts ----
+var notes = [];
+var taxes = r.duty + r.fee + r.vat;
+if (p.price > 0) {
+var pct = taxes / p.price * 100;
+notes.push("<div class='callout " + (pct >= 30? "red": "amber") + "'>税费（关税+处理费+VAT）共 <b>" + fmt(taxes) + "</b>，占你售价的 <b>" + pct.toFixed(1) + "%</b>。" +
+(pct >= 30? "占比已经很高：如果售价里还没含税，强烈建议改 DDP（含税价）重新定价，别让买家收货时被追缴——那是拒收和差评的主要来源。": "定价时记得把这块成本算进含税售价，别等买家收货补税才发现亏了。") + "</div>");
+}
+if (p.value <= 150 && r.duty > 0 && p.value > 0 && r.duty / p.value >= 0.25) {
+notes.push("<div class='callout amber'>注意：这个包裹货值低、品类多，<b>€3/品类的定额关税已经吃掉货值的 " + (r.duty / p.value * 100).toFixed(0) + "%</b>。低单价、多品类拼包是新规打击最狠的类型，可考虑提价、减少拼包品类或改发大货到海外仓。</div>");
+}
+if (p.value > 150) {
+notes.push("<div class='callout amber'>货值已超过 €150：不再适用 €3 定额关税，也不能用 IOSS 简化申报，需要按 HS 编码走正常清关。左侧“大货关税率”请按你的 HS 编码实际税率修改。</div>");
+}
+$("callouts").innerHTML = notes.join("");
+
+// ---- comparison table ----
+var eras = [
+["old", "旧规", "2026 年 7 月前"],
+["now", "现行", "2026 年 7 月起"],
+["nov", "11 月后", "2026 年 11 月起（€2 为草案额）"]
+];
+var oldTotal = compute("old", p).total;
+var cmpHtml = "";
+eras.forEach(function (e) {
+var rr = compute(e[0], p);
+var d = rr.total - oldTotal;
+cmpHtml += "<tr" + (e[0] === era? " class='now'": "") + "><td class='era'>" + e[1] + "<small>" + e[2] + "</small></td>" +
+"<td class='num'>" + fmt(rr.total) + "</td><td class='num'>" + fmt(rr.perItem) + "</td>" +
+"<td class='num " + (d > 0.004? "delta": "") + "'>" + (d > 0.004? "+" + fmt(d): "—") + "</td></tr>";
+});
+$("cmpRows").innerHTML = cmpHtml;
+
+var novR = compute("nov", p), nowR = compute("now", p);
+var extra = novR.total - oldTotal;
+var step2 = novR.total - nowR.total;
+$("cmpNote").innerHTML = "按当前这个包裹：新规全部落地后（11 月起），每个包裹比旧规多花 <b>" + fmt(extra) + "</b>（约 " + fmtCny(extra * p.fx) + "）。" +
+(step2 > 0.004? "其中 11 月这一步单独再加 <b>" + fmt(step2) + "</b>——若 €2 处理费如期落地，提价要赶在 11 月 1 日之前。": "") +
+" 如果你一个月发 100 个这样的包裹，就是每月多出 <b>" + fmt(extra * 100) + "</b> 的纯成本。";
+
+// stash for copy
+window.__summary = {
+country: country[0], era: era, p: p, r: r, taxes: taxes
+};
+}
+
+["value", "freight", "items", "cats", "price", "fx", "fee", "otherFees", "dutyRate"].forEach(function (id) {
+$(id).addEventListener("input", calc);
+});
+destSel.addEventListener("change", calc);
+$("feeBasis").addEventListener("change", calc);
+
+$("resetBtn").addEventListener("click", function () {
+$("value").value = 12; $("freight").value = 4; $("items").value = 1; $("cats").value = 1;
+$("price").value = ""; $("fx").value = 7.8; $("fee").value = 2; $("feeBasis").value = "item"; $("otherFees").value = 0; $("dutyRate").value = 6;
+destSel.value = 0;
+era = "now";
+segBtns.forEach(function (x) { x.setAttribute("aria-pressed", x.getAttribute("data-era") === "now"? "true": "false");});
+calc();
+});
+
+$("copyBtn").addEventListener("click", function () {
+var s = window.__summary; if (!s) return;
+var eraName = { now: "现行规则（€3/件）", nov: "2026年11月后（€3+€2/件）", old: "旧规（€150免税）"}[s.era];
+var lines = [
+"目的地：" + s.country + " · " + eraName,
+"商品申报价值 " + fmt(s.p.value) + " ＋ 国际运费 " + fmt(s.p.freight),
+"关税 " + fmt(s.r.duty) + " ＋ 处理费 " + fmt(s.r.fee) + " ＋ 增值税(VAT " + s.p.vatRate + "%) " + fmt(s.r.vat),
+"→ 到岸成本合计 " + fmt(s.r.total) + "（每件 " + fmt(s.r.perItem) + "，约 " + fmtCny(s.r.total * s.p.fx) + "）"
+];
+if (s.p.price > 0) lines.push("税费占售价 " + (s.taxes / s.p.price * 100).toFixed(1) + "%");
+lines.push("（估算口径，数据截至 2026-10-07，最终以海关核定为准）");
+var text = lines.join("\n");
+function done() {
+$("copiedMsg").hidden = false;
+setTimeout(function () { $("copiedMsg").hidden = true;}, 2000);
+}
+if (navigator.clipboard && navigator.clipboard.writeText) {
+navigator.clipboard.writeText(text).then(done, function () { fallback();});
+} else fallback();
+function fallback() {
+var ta = document.createElement("textarea");
+ta.value = text; document.body.appendChild(ta);
+ta.select();
+try { document.execCommand("copy"); done();} catch (e) {}
+document.body.removeChild(ta);
+}
+});
+
+/* ---- 邮箱订阅（FormSubmit AJAX 接口） ---- */
+var subForm = $("subForm");
+if (subForm) {
+subForm.addEventListener("submit", function (ev) {
+ev.preventDefault();
+var msg = $("subMsg"), btn = $("subBtn");
+function show(text, cls) { msg.textContent = text; msg.className = "sub-msg " + cls;}
+if (!FORM_SUBMIT_EMAIL) {
+show("订阅通道即将开通，敬请期待。", "info");
+return;
+}
+var subName = $("subName").value.trim();
+var subEmail = $("subEmail").value.trim();
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(subEmail)) {
+show("请填写有效的邮箱地址。", "info");
+return;
+}
+btn.disabled = true;
+btn.textContent = "提交中…";
+fetch("https://formsubmit.co/ajax/" + encodeURIComponent(FORM_SUBMIT_EMAIL), {
+method: "POST",
+headers: { "Content-Type": "application/json", "Accept": "application/json"},
+body: JSON.stringify({
+name: subName,
+email: subEmail,
+_subject: "【欧盟到岸成本计算器】新订阅",
+_template: "table"
+})
+}).then(function (res) {
+return res.json().catch(function () { return {};}).then(function (data) {
+if (res.ok && String(data.success) === "true") {
+show("订阅成功！新规有变化会发邮件通知你。", "ok");
+subForm.reset();
+} else {
+show("订阅通道即将开通，敬请期待。", "info");
+}
+});
+}).catch(function () {
+show("订阅通道即将开通，敬请期待。", "info");
+}).then(function () {
+btn.disabled = false;
+btn.textContent = "订阅提醒";
+});
+});
+}
+
+calc();
+})();
+</script>
+</body>
+</html>
